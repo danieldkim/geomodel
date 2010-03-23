@@ -40,13 +40,12 @@ To calculate the rectangle of a given geocell string, first divide the
     (-90,-180) +---+---+---+---+
 </pre>
 
-  NOTE: The point (0, 0) is at the intersection of grid cells 3, 6, 9 and c. And,
-        for example, cell 7 should be the sub-rectangle from
-        (-45, 90) to (0, 180).   
-                                                                                                  
-  Calculate the sub-rectangle for the first character of the geocell string and
-  re-divide this sub-rectangle into another 4x4 grid. For example, if the geocell
-  string is '78a', we will re-divide the sub-rectangle like so:
+NOTE: The point (0, 0) is at the intersection of grid cells 3, 6, 9 and c. And,
+for example, cell 7 should be the sub-rectangle from (-45, 90) to (0, 180).   
+
+Calculate the sub-rectangle for the first character of the geocell string and
+re-divide this sub-rectangle into another 4x4 grid. For example, if the geocell
+string is '78a', we will re-divide the sub-rectangle like so:
 
 <pre>
                  .                   .
@@ -64,9 +63,9 @@ To calculate the rectangle of a given geocell string, first divide the
                  .                   .
 </pre>
 
-  Continue to re-divide into sub-rectangles and 4x4 grids until the entire
-  geocell string has been exhausted. The final sub-rectangle is the rectangular
-  region for the geocell.    
+Continue to re-divide into sub-rectangles and 4x4 grids until the entire
+geocell string has been exhausted. The final sub-rectangle is the rectangular
+region for the geocell.    
 
 ## Requirements
 
