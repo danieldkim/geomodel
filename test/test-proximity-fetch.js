@@ -5,7 +5,7 @@ log4js.addAppender(log4js.consoleAppender());
 log4js.addAppender(log4js.fileAppender('./test-proximity-fetch.log'), 'test-proximity-fetch');
 var logger = log4js.getLogger('test-proximity-fetch');
 logger.setLevel('INFO');
-var Geocell = require('geomodel').create_geocell();
+var Geocell = require('geomodel').create_geocell(logger);
 var _ = require('underscore')._;
 
 var flatiron = {
