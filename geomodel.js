@@ -94,7 +94,7 @@ if (underscore) {
 
 var no_op_fn = function() {}
 
-exports.create_geo_cell = function(logger, inspect) {
+exports.create_geocell = function(logger, inspect) {
 
   if ( ! logger ) {
     logger = { isDebugEnabled: function() {return false} };
