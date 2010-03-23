@@ -110,23 +110,23 @@ exports.create_geocell = function(logger, inspect) {
   inspect = inspect || no_op_fn
 
 	// Geocell algorithm constants.
-	var GEOCELL_GRID_SIZE = 4;
-	var GEOCELL_ALPHABET = "0123456789abcdef";
+  var GEOCELL_GRID_SIZE = 4;
+  var GEOCELL_ALPHABET = "0123456789abcdef";
 
-	// The maximum *practical* geocell resolution.
-	var MAX_GEOCELL_RESOLUTION = 13;
+  // The maximum *practical* geocell resolution.
+  var MAX_GEOCELL_RESOLUTION = 13;
 
-	// The maximum number of geocells to consider for a bounding box search.
-	var MAX_FEASIBLE_BBOX_SEARCH_CELLS = 300;
+  // The maximum number of geocells to consider for a bounding box search.
+  var MAX_FEASIBLE_BBOX_SEARCH_CELLS = 300;
 
-	// Direction enumerations.
-	var NORTHWEST = [-1,1];
-	var NORTH = [0,1];
-	var NORTHEAST = [1,1];
-	var EAST = [1,0];
-	var SOUTHEAST = [1,-1];
-	var SOUTH = [0,-1];
-	var SOUTHWEST = [-1,-1];
+  // Direction enumerations.
+  var NORTHWEST = [-1,1];
+  var NORTH = [0,1];
+  var NORTHEAST = [1,1];
+  var EAST = [1,0];
+  var SOUTHEAST = [1,-1];
+  var SOUTH = [0,-1];
+  var SOUTHWEST = [-1,-1];
   var WEST = [-1,0];
 
   var RADIUS = 6378135;
@@ -441,7 +441,7 @@ exports.create_geocell = function(logger, inspect) {
         arrayAddAll(result, cell_set[i]);
       }
       return result;
-      },
+    },
 
 
     /**
@@ -467,7 +467,7 @@ exports.create_geocell = function(logger, inspect) {
       var num_rows = Math.floor((bbox_ne.north() - bbox_sw.south()) / cell_lat_span);
 
       return num_cols * num_rows;
-      },
+    },
 
     /**
      * 
@@ -484,7 +484,7 @@ exports.create_geocell = function(logger, inspect) {
         result.push(this.adjacent(cell, directions[i]));
       }
       return result;
-      },
+    },
 
     /**
      * Calculates the geocell adjacent to the given cell in the given direction.
@@ -560,7 +560,7 @@ exports.create_geocell = function(logger, inspect) {
 
       // At this point, horizontal wrapping is done inherently.
       return cell_adj_arr.join("");
-      },
+    },
 
     /**
      * Returns whether or not the given cell contains the given point.
@@ -719,10 +719,10 @@ exports.create_geocell = function(logger, inspect) {
     _subdiv_char: function(pos) {
       // NOTE: This only works for grid size 4.
       return GEOCELL_ALPHABET.charAt(
-                               (pos[1] & 2) << 2 |
-                               (pos[0] & 2) << 1 |
-                               (pos[1] & 1) << 1 |
-                               (pos[0] & 1) << 0);
+                                (pos[1] & 2) << 2 |
+                                (pos[0] & 2) << 1 |
+                                (pos[1] & 1) << 1 |
+                                (pos[0] & 1) << 0);
     },
 
     /**
@@ -738,7 +738,7 @@ exports.create_geocell = function(logger, inspect) {
         var p2lat = Math.toRadians(p2.lat);
         var p2lon = Math.toRadians(p2.lon);
         return RADIUS * Math.acos(Math.sin(p1lat) * Math.sin(p2lat) +
-            Math.cos(p1lat) * Math.cos(p2lat) * Math.cos(p2lon - p1lon));
+               Math.cos(p1lat) * Math.cos(p2lat) * Math.cos(p2lon - p1lon));
     },
 
     /** Returns the edges of the rectangular region containing all of the
