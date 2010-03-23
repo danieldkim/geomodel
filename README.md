@@ -125,7 +125,7 @@ The results are returned as a list of "2-tuples" where the first element of the
 tuple is the object and the second is the distance from the query point, sorted
 by distance:
 
-    results.forEach(function(res) { puts(res[0].key + ' is ' + res[1] ' meters away.') })
+    results.forEach(function(res) { puts(res[0].key + ' is ' + res[1] + ' meters away.') })
 
 For a full working example of these steps check out the code in tests/test-proximity-fetch.js.
     
