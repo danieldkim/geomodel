@@ -844,9 +844,7 @@ exports.create_geocell = function(logger, inspect) {
         var new_results = entity_finder(cur_geocells_unique)
         if (logger.isDebugEnabled()) logger.debug('fetch complete for ' + inspect(cur_geocells_unique))
 
-        searched_cells.push(cur_geocells)
-        searched_cells = _.flatten(searched_cells)
-        searched_cells = _.uniq(searched_cells)
+        searched_cells = _.uniq(searched_cells.concat(cur_geocells))
 
         // Begin Storing distance from the search result entity to the
         // search center along with the search result itself, in a tuple.
@@ -912,10 +910,10 @@ exports.create_geocell = function(logger, inspect) {
           }
           if (logger.isDebugEnabled()) logger.debug('perpendicular nearest edge:' + inspect(perpendicular_nearest_edge))
           if (logger.isDebugEnabled()) logger.debug('adjacent cell:' + inspect(this.adjacent(cur_geocells[0], perpendicular_nearest_edge)))
-          cur_geocells.push(_.map(cur_geocells, function(cell) {
-                              return that.adjacent(cell, perpendicular_nearest_edge) 
-                            }))
-          cur_geocells = _.reject(_.flatten(cur_geocells), function(cell) { return !cell })
+          cur_geocells = cur_geocells.concat(_.map(cur_geocells, function(cell) {
+                            return that.adjacent(cell, perpendicular_nearest_edge) 
+                         }))
+          cur_geocells = _.reject(cur_geocells, function(cell) { return !cell })
         }
 
         // We don't have enough items yet, keep searching.
