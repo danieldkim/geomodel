@@ -96,7 +96,9 @@ var no_op_fn = function() {}
 var no_op_logger  = { isDebugEnabled: function() {return false} };
 ['debug', 'info', 'error', 'warn', 'fatal'].forEach(function(f) { no_op_logger[f] = no_op_fn }); 
 
-exports.create_geocell = function(logger, inspect) {
+if (typeof exports !== 'undefined') exports.create_geocell = create_geocell;
+
+function create_geocell(logger, inspect) {
 
   if ( ! logger ) {
     logger = no_op_logger
