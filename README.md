@@ -118,6 +118,9 @@ finder function and success and error handlers:
                       // the entities in the specified geocells and then return 
                       // them in an array like so:
                       event_listeners.success(entity_results);
+                      // if any errors occur call the error function, passing
+                      // in an error message, like so:
+                      event_listeners.error(some_error_message)
                     }, {
                       success: function(proximity_results) {
                         // do what you want to do with the results here
