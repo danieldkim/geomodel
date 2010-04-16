@@ -768,7 +768,7 @@ function create_geocell(logger, inspect) {
         ].sort(function(x, y) { return cmp(x[1], y[1]) }) )
     },
 
-    /** Performs a proximity/radius fetch on the given query.
+    /** Performs a proximity/radius fetch using the given entity finder. 
      *
      * Fetches at most <max_results> entities matching the given query,
      * ordered by ascending distance from the given center point, and optionally
@@ -784,7 +784,14 @@ function create_geocell(logger, inspect) {
      *       which to search for matching entities.
      *   entity_finder: A function which takes a list of geocells as a parameter
      *       and finds all of the objects in those cells.  Objects should have a 
-     *       'key' and 'location' property.  
+     *       'key' and 'location' property.  This function will be passed a hash
+     *       containing a 'success' key and an 'error' key, that map to 
+     *       functions to handle success and error conditions in the finder.  
+     *       The list of objects should be passed to the success function when
+     *       calling it.  
+     *   event_listeners: A hash of functions to handle success and error 
+     *       results from this method.  The proximity results will be passed to
+     *       the success function.
      *   max_results: An int indicating the maximum number of desired results.
      *       The default is 10, and the larger this number, the longer the fetch
      *       will take.
@@ -796,10 +803,9 @@ function create_geocell(logger, inspect) {
      *   center.
      * 
      */
-    proximity_fetch: function(center, entity_finder, max_results, max_distance) {
+    proximity_fetch: function(center, entity_finder, event_listeners, max_results, max_distance) {
       max_results = max_results || 10
       max_distance = max_distance || 0
-
       var that = this
 
       var results = []
@@ -829,11 +835,21 @@ function create_geocell(logger, inspect) {
 
       var sorted_edges = [[0,0]]
       var sorted_edge_distances = [0]
-      while (cur_geocells.length > 0) {
-        var closest_possible_next_result_dist = sorted_edge_distances[0]
-        if (logger.isDebugEnabled()) logger.debug('closest_possible_next_result_dist: ' + inspect(closest_possible_next_result_dist))
-        if (max_distance && closest_possible_next_result_dist > max_distance)
-          break;
+      
+      fetch_more();
+      
+      function fetch_more() {      
+        
+        if (cur_geocells.length < 1) { done(); return;}
+        closest_possible_next_result_dist = sorted_edge_distances[0]
+        if (logger.isDebugEnabled()) {
+          logger.debug('closest_possible_next_result_dist: ' + 
+                        inspect(closest_possible_next_result_dist))
+        }
+        if (max_distance && closest_possible_next_result_dist > max_distance) {
+          done();
+          return;
+        }
 
         var cur_geocells_unique = _.reject(_.uniq(cur_geocells), function(cell) { 
                                     return _.include(searched_cells, cell) 
@@ -843,119 +859,144 @@ function create_geocell(logger, inspect) {
         // Run query on the next set of geocells.
         var cur_resolution = cur_geocells[0].length
         // Update results
-        var new_results = entity_finder(cur_geocells_unique)
-        if (logger.isDebugEnabled()) logger.debug('fetch complete for ' + inspect(cur_geocells_unique))
-
-        searched_cells = _.uniq(searched_cells.concat(cur_geocells))
-
-        // Begin Storing distance from the search result entity to the
-        // search center along with the search result itself, in a tuple.
-        new_results = _.map(new_results, function(entity) { 
-                            return [entity, that.distance(center, entity.location)]
-                      })
-        new_results.sort(function(dr1, dr2) { return cmp(dr1[1], dr2[1]) })
-        new_results = _.first(new_results, max_results)
-        if (logger.isDebugEnabled()) logger.debug('new results:' + inspect(new_results))
-        // Merge new_results into results or the other way around, depending on
-        // which is larger.
-        if (results.length > new_results.length)
-          _merge_results_in_place(results, new_results)
-        else {
-          _merge_results_in_place(new_results, results)
-          results = new_results
-        }
-        if (logger.isDebugEnabled()) logger.debug('results(after merge):' + inspect(results))
-        results = _.first(results, max_results)
-
-        var sorted = this.distance_sorted_edges(cur_geocells, center)
-        if (logger.isDebugEnabled()) logger.debug('sorted: ' + inspect(sorted))
-        var sorted_edges = sorted[0]  
-        var sorted_edge_distances = sorted[1]
-        var nearest_edge, perpendicular_nearest_edge
-
-        if (results.length == 0 || cur_geocells.length == 4) {
-          // Either no results (in which case we optimize by not looking at
-          // adjacents, go straight to the parent) or we've searched 4 adjacent
-          // geocells, in which case we should now search the parents of those
-          // geocells.
-          cur_containing_geocell = cur_containing_geocell.substring(0, cur_containing_geocell.length-1)
-          cur_geocells = _.uniq(_.map(cur_geocells, function(cell) {
-                                   return cell.substring(0, cell.length-1) 
-                                }))
-          if (cur_geocells.length < 1 || ! cur_geocells[0]) 
-            break;  // Done with search, we've searched everywhere.
-
-        } else if (cur_geocells.length == 1) {
-          // Get adjacent in one direction.
-          // TODO(romannurik): Watch for +/- 90 degree latitude edge case geocells.
-          nearest_edge = sorted_edges[0]
-          if (logger.isDebugEnabled()) logger.debug('nearest edge:' + inspect(nearest_edge))
-          if (logger.isDebugEnabled()) logger.debug('adjacent cell:' + inspect(this.adjacent(cur_geocells[0], nearest_edge)))
-          cur_geocells.push(this.adjacent(cur_geocells[0], nearest_edge))
-
-        } else if (cur_geocells.length == 2) {
-          // Get adjacents in perpendicular direction.
-          nearest_edge = this.distance_sorted_edges([cur_containing_geocell],
-                                                      center)[0][0]
-          if (logger.isDebugEnabled()) logger.debug('sorted edges:' + inspect(sorted_edges))
-          if (logger.isDebugEnabled()) logger.debug('nearest edge:' + inspect(nearest_edge))
-          if (nearest_edge[0] == 0) {
-            // Was vertical, perpendicular is horizontal.
-            perpendicular_nearest_edge = _.reject(sorted_edges, function(x) {
-                                            return (x[0] == 0)
-                                         })[0]
-          } else {
-            // Was horizontal, perpendicular is vertical.
-            perpendicular_nearest_edge = _.reject(sorted_edges, function(x) { 
-                                            return (x[0] != 0)
-                                         })[0]
+        
+        var new_results;
+        entity_finder(cur_geocells_unique, {
+          success: function(results) {
+            new_results = results;
+            process_new_results();
+          },
+          error: function(mess) {
+            var error_mess = "Got error from entity finder: " + mess;
+            event_listeners.error(error_mess);
           }
-          if (logger.isDebugEnabled()) logger.debug('perpendicular nearest edge:' + inspect(perpendicular_nearest_edge))
-          if (logger.isDebugEnabled()) logger.debug('adjacent cell:' + inspect(this.adjacent(cur_geocells[0], perpendicular_nearest_edge)))
-          cur_geocells = cur_geocells.concat(_.map(cur_geocells, function(cell) {
-                            return that.adjacent(cell, perpendicular_nearest_edge) 
-                         }))
-          cur_geocells = _.reject(cur_geocells, function(cell) { return !cell })
-        }
+        });
 
-        // We don't have enough items yet, keep searching.
-        if (results.length < max_results) {
-          if (logger.isDebugEnabled()) {
-            logger.debug('have ' + results.length + ' results but want ' + 
-                          max_results + ' results, continuing search')
+        function process_new_results() {
+          if (logger.isDebugEnabled()) logger.debug('fetch complete for ' + inspect(cur_geocells_unique))
+
+          searched_cells = _.uniq(searched_cells.concat(cur_geocells))
+
+          // Begin Storing distance from the search result entity to the
+          // search center along with the search result itself, in a tuple.
+          new_results = _.map(new_results, function(entity) { 
+                              return [entity, that.distance(center, entity.location)]
+                        })
+          new_results.sort(function(dr1, dr2) { return cmp(dr1[1], dr2[1]) })
+          new_results = _.first(new_results, max_results)
+          if (logger.isDebugEnabled()) logger.debug('new results:' + inspect(new_results))
+          // Merge new_results into results or the other way around, depending on
+          // which is larger.
+          if (results.length > new_results.length)
+            _merge_results_in_place(results, new_results)
+          else {
+            _merge_results_in_place(new_results, results)
+            results = new_results
           }
-          continue;
-        }
+          if (logger.isDebugEnabled()) logger.debug('results(after merge):' + inspect(results))
+          results = _.first(results, max_results)
 
-        if (logger.isDebugEnabled()) logger.debug('have ' + results.length + ' results')
+          var sorted = that.distance_sorted_edges(cur_geocells, center)
+          if (logger.isDebugEnabled()) logger.debug('sorted: ' + inspect(sorted))
+          sorted_edges = sorted[0]  
+          sorted_edge_distances = sorted[1]
+          var nearest_edge, perpendicular_nearest_edge
 
-        // If the currently max_results'th closest item is closer than any
-        // of the next test geocells, we're done searching.
-        current_farthest_returnable_result_dist = this.distance(center, 
-                                                    results[max_results - 1][0].location)
-        if (closest_possible_next_result_dist >=
-            current_farthest_returnable_result_dist) {
+          if (results.length == 0 || cur_geocells.length == 4) {
+            // Either no results (in which case we optimize by not looking at
+            // adjacents, go straight to the parent) or we've searched 4 adjacent
+            // geocells, in which case we should now search the parents of those
+            // geocells.
+            cur_containing_geocell = cur_containing_geocell.substring(0, cur_containing_geocell.length-1)
+            cur_geocells = _.uniq(_.map(cur_geocells, function(cell) {
+                                     return cell.substring(0, cell.length-1) 
+                                  }))
+            if (cur_geocells.length < 1 || ! cur_geocells[0]) {
+              done();  // Done with search, we've searched everywhere.
+              return;
+            }
+
+          } else if (cur_geocells.length == 1) {
+            // Get adjacent in one direction.
+            // TODO(romannurik): Watch for +/- 90 degree latitude edge case geocells.
+            nearest_edge = sorted_edges[0]
+            if (logger.isDebugEnabled()) logger.debug('nearest edge:' + inspect(nearest_edge))
+            if (logger.isDebugEnabled()) logger.debug('adjacent cell:' + inspect(that.adjacent(cur_geocells[0], nearest_edge)))
+            cur_geocells.push(that.adjacent(cur_geocells[0], nearest_edge))
+
+          } else if (cur_geocells.length == 2) {
+            // Get adjacents in perpendicular direction.
+            nearest_edge = that.distance_sorted_edges([cur_containing_geocell],
+                                                        center)[0][0]
+            if (logger.isDebugEnabled()) logger.debug('sorted edges:' + inspect(sorted_edges))
+            if (logger.isDebugEnabled()) logger.debug('nearest edge:' + inspect(nearest_edge))
+            if (nearest_edge[0] == 0) {
+              // Was vertical, perpendicular is horizontal.
+              perpendicular_nearest_edge = _.reject(sorted_edges, function(x) {
+                                              return (x[0] == 0)
+                                           })[0]
+            } else {
+              // Was horizontal, perpendicular is vertical.
+              perpendicular_nearest_edge = _.reject(sorted_edges, function(x) { 
+                                              return (x[0] != 0)
+                                           })[0]
+            }
+            if (logger.isDebugEnabled()) logger.debug('perpendicular nearest edge:' + inspect(perpendicular_nearest_edge))
+            if (logger.isDebugEnabled()) logger.debug('adjacent cell:' + inspect(that.adjacent(cur_geocells[0], perpendicular_nearest_edge)))
+            cur_geocells = cur_geocells.concat(_.map(cur_geocells, function(cell) {
+                              return that.adjacent(cell, perpendicular_nearest_edge) 
+                           }))
+            cur_geocells = _.reject(cur_geocells, function(cell) { return !cell })
+          }
+
+          // We don't have enough items yet, keep searching.
+          if (results.length < max_results) {
+            if (logger.isDebugEnabled()) {
+              logger.debug('have ' + results.length + ' results but want ' + 
+                            max_results + ' results, continuing search')
+            }
+            fetch_more();
+            return;
+          }
+
+          if (logger.isDebugEnabled()) logger.debug('have ' + results.length + ' results')
+
+          // If the currently max_results'th closest item is closer than any
+          // of the next test geocells, we're done searching.
+          current_farthest_returnable_result_dist = that.distance(center, 
+                                                      results[max_results - 1][0].location)
+          if (closest_possible_next_result_dist >=
+              current_farthest_returnable_result_dist) {
+            if (logger.isDebugEnabled()) {
+              logger.debug('DONE next result at least ' + 
+                            closest_possible_next_result_dist +
+                            ' away, current farthest is ' + 
+                            current_farthest_returnable_result_dist + ' dist')
+            }
+            require('sys').puts('yo')
+            done();
+            return;
+          }
+
           if (logger.isDebugEnabled()) {
-            logger.debug('DONE next result at least ' + 
-                          closest_possible_next_result_dist +
-                          ' away, current farthest is ' + 
+            logger.debug('next result at least ' + 
+                          closest_possible_next_result_dist + 
+                          ' away, current farthest is ' +
                           current_farthest_returnable_result_dist + ' dist')
           }
-          break;
-        }
-
-        if (logger.isDebugEnabled()) {
-          logger.debug('next result at least ' + 
-                        closest_possible_next_result_dist + 
-                        ' away, current farthest is ' +
-                        current_farthest_returnable_result_dist + ' dist')
+          
+          fetch_more();
         }
       }
 
-      if (logger.isDebugEnabled()) logger.debug('proximity query looked in ' + searched_cells.length + ' geocells')
-      return _.reject(results.slice(0, max_results), function(result) {
-                return max_distance &&  result[1] >  max_distance
-             })
+      function done() {
+        require('sys').puts('yo')
+        if (logger.isDebugEnabled()) logger.debug('proximity query looked in ' + searched_cells.length + ' geocells')
+        var final_results = _.reject(results.slice(0, max_results), function(result) {
+          return max_distance &&  result[1] >  max_distance
+        })
+        event_listeners.success(final_results);
+      }
     }
 
   }

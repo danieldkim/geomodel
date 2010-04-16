@@ -110,21 +110,29 @@ property must be an object with a 'lat' and 'lon' property (the
 <code>proximity\_fetch</code>.
 
 Call <code>proximity\_fetch</code> to find entities near a point, passing in a 
-finder function:
+finder function and success and error handlers:
 
     var results = Geocell.proximity_fetch(my_point,
-                    function(geocells) {
-	                  // this function should query your data source for all 
-	                  // the entities in the specified geocells and return 
-	                  // them in an array
+                    function(geocells, event_listeners) {
+                      // this function should query your data source for all 
+                      // the entities in the specified geocells and then return 
+                      // them in an array like so:
+                      event_listeners.success(entity_results);
+                    }, {
+                      success: function(proximity_results) {
+                        // do what you want to do with the results here
+                      },
+                      error: function(mess) {
+                        // handle errors from proximity_fetch here
+                      }
                     },
-                    max_results, max_distance)
+                    max_results, max_distance);
 
 The results are returned as a list of "2-tuples" where the first element of the 
 tuple is the object and the second is the distance from the query point, sorted
 by distance:
 
-    results.forEach(function(res) { puts(res[0].key + ' is ' + res[1] + ' meters away.') })
+    proximity_results.forEach(function(res) { puts(res[0].key + ' is ' + res[1] + ' meters away.') })
 
 For a full working example of these steps check out the code in tests/test-proximity-fetch.js.
     
