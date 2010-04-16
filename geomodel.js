@@ -780,15 +780,16 @@ function create_geocell(logger, inspect) {
      * given query and no closer possible entities can be found.
      * 
      * Args:
-     *   center: A geotypes.Point or db.GeoPt indicating the center point around
-     *       which to search for matching entities.
-     *   entity_finder: A function which takes a list of geocells as a parameter
-     *       and finds all of the objects in those cells.  Objects should have a 
-     *       'key' and 'location' property.  This function will be passed a hash
-     *       containing a 'success' key and an 'error' key, that map to 
-     *       functions to handle success and error conditions in the finder.  
-     *       The list of objects should be passed to the success function when
-     *       calling it.  
+     *   center: A point indicating the center point around which to search for
+     *       matching entities.  A point is just an object with a 'lat' and 'lon'
+     *       property.
+     *   entity_finder: A function which takes a list of geocells as the first
+     *       parameter and finds all of the objects in those cells.  Objects
+     *       should have a 'id' and 'location' property.  The second parameter
+     *       passed to this function will be a hash containing a 'success' key
+     *       and an 'error' key, that map to functions to handle success and 
+     *       error conditions in the finder.  The result list of objects should
+     *       be passed to the success function when calling it.  
      *   event_listeners: A hash of functions to handle success and error 
      *       results from this method.  The proximity results will be passed to
      *       the success function.
@@ -829,8 +830,16 @@ function create_geocell(logger, inspect) {
       // no duplicates in the resulting list.
       function _merge_results_in_place(a, b) {
         merge_in_place([a, b],
-                       function(x, y) { return cmp(x[1], y[1]) },
-                       function(x, y) { return (x[0].key == y[0].key) })
+          function(x, y) { return cmp(x[1], y[1]) },
+          function(x, y) { 
+            if (x[0].id) {
+              return (x[0].id == y[0].id);
+            } else if (x[0].get_id) {
+              return (x[0].get_id() == y[0].get_id());               
+            } else {
+              throw "Entities do not have an id property."
+            }
+          })
       }
 
       var sorted_edges = [[0,0]]

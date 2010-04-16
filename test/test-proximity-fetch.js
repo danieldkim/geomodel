@@ -4,35 +4,35 @@ var log4js = require('log4js-node');
 log4js.addAppender(log4js.consoleAppender());
 log4js.addAppender(log4js.fileAppender('./test-proximity-fetch.log'), 'test-proximity-fetch');
 var logger = log4js.getLogger('test-proximity-fetch');
-logger.setLevel('DEBUG');
+logger.setLevel('INFO');
 var Geocell = require('geomodel').create_geocell(logger);
 var _ = require('underscore')._;
 
 var flatiron = {
-    key: 'Flatiron', 
+    id: 'Flatiron', 
     location: Geocell.create_point(40.7407092, -73.9894039)
   };
 var outback = {
-    key: 'Outback Steakhouse', 
+    id: 'Outback Steakhouse', 
     location: Geocell.create_point(40.7425610, -73.9922670)
   };
 var museum_of_sex = {
-    key: 'Museum of Sex', 
+    id: 'Museum of Sex', 
     location: Geocell.create_point(40.7440290, -73.9873500)
   };
 var wolfgang = {
-    key: 'Wolfgang Steakhouse', 
+    id: 'Wolfgang Steakhouse', 
     location: Geocell.create_point(40.7466230, -73.9820620)
   };
 var morgan =  {
-    key: 'Morgan Library', 
+    id: 'Morgan Library', 
     location: Geocell.create_point(40.7493672, -73.9817685)
   };
 
 var objects = [flatiron, outback, museum_of_sex, wolfgang, morgan];
 objects.forEach(function(o) {
   o.geocells = Geocell.generate_geo_cell(o.location);
-  // logger.debug('Geocells for ' + o.key + ': ' + sys.inspect(o.geocells));
+  // logger.debug('Geocells for ' + o.id + ': ' + sys.inspect(o.geocells));
 });
 
 function test_proximity_fetch() {
@@ -44,12 +44,12 @@ function test_proximity_fetch() {
         })
         event_listeners.success(obj_results);
       }, {
-       success: function(proximity_results) {
-        event_listeners.success(proximity_results);
-       },
-       error: function(mess) {
-         event_listeners.error(mess);         
-       }
+        success: function(proximity_results) {
+          event_listeners.success(proximity_results);
+        },
+        error: function(mess) {
+          event_listeners.error(mess);         
+        }
       },
       max_results, max_distance);
   }
@@ -63,7 +63,7 @@ function test_proximity_fetch() {
                 return _.include(objects, o);
               }),
               "Proximity results does not include all expected objects: " + 
-    _.map(expected, function(o) { return o.key }));
+    _.map(expected, function(o) { return o.id }));
   }
 
   function assert_proximity_results_distances(proximity_results, max) {

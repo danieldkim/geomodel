@@ -104,7 +104,7 @@ your data source such that you can query for them by geocell later:
     // then do some stuff to save my_obj to your data source, indexed by 
     // the generated geocells somehow 
 
-All geocelled objects must have a 'key' and a 'location' property.  The location
+All geocelled objects must have an 'id' and a 'location' property.  The location
 property must be an object with a 'lat' and 'lon' property (the 
 <code>create_point</code> function creates such an object).  These are used by
 <code>proximity\_fetch</code>.
