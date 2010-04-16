@@ -81,26 +81,26 @@ the code should work with any JS engine, including browsers.
 
 ## Usage
 
-Create a Geocell instance, passing in a <code>logger</code> object and an
+Create a Geomodel instance, passing in a <code>logger</code> object and an
 <code>inspect</code> function:
 
     var log4js = require('log4js-node');
     var logger = log4js.getLogger('foo');  
-    var Geocell = require('geomodel').create_geocell(logger, require('sys').inspect);
+    var Geomodel = require('geomodel').create_geomodel(logger, require('sys').inspect);
 
 geomodel.js defaults the inspect parameter to '<code>require('sys').inspect</code>'
 so you don't technically need to pass this if you are running on node.js.
 
 If you don't have log4js and don't really care about logging, just create a 
-Geocell instance with no params: 
+Geomodel instance with no params: 
 
-    var Geocell = require('geomodel').create_geocell();
+    var Geomodel = require('geomodel').create_geomodel();
 
 Generate geocells for your entities based on their location, and save them to 
 your data source such that you can query for them by geocell later:
 
-    my_obj.location = Geocell.create_point(40.7407092, -73.9894039)
-    var geocells = Geocell.generate_geo_cell(my_obj.location)
+    my_obj.location = Geomodel.create_point(40.7407092, -73.9894039)
+    var geocells = Geomodel.generate_geo_cell(my_obj.location)
     // then do some stuff to save my_obj to your data source, indexed by 
     // the generated geocells somehow 
 
@@ -112,7 +112,7 @@ property must be an object with a 'lat' and 'lon' property (the
 Call <code>proximity\_fetch</code> to find entities near a point, passing in a 
 finder function and success and error handlers:
 
-    var results = Geocell.proximity_fetch(my_point,
+    var results = Geomodel.proximity_fetch(my_point,
                     function(geocells, event_listeners) {
                       // this function should query your data source for all 
                       // the entities in the specified geocells and then return 

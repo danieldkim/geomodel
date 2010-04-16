@@ -5,39 +5,39 @@ log4js.addAppender(log4js.consoleAppender());
 log4js.addAppender(log4js.fileAppender('./test-proximity-fetch.log'), 'test-proximity-fetch');
 var logger = log4js.getLogger('test-proximity-fetch');
 logger.setLevel('INFO');
-var Geocell = require('geomodel').create_geocell(logger);
+var Geomodel = require('geomodel').create_geomodel(logger);
 var _ = require('underscore')._;
 
 var flatiron = {
     id: 'Flatiron', 
-    location: Geocell.create_point(40.7407092, -73.9894039)
+    location: Geomodel.create_point(40.7407092, -73.9894039)
   };
 var outback = {
     id: 'Outback Steakhouse', 
-    location: Geocell.create_point(40.7425610, -73.9922670)
+    location: Geomodel.create_point(40.7425610, -73.9922670)
   };
 var museum_of_sex = {
     id: 'Museum of Sex', 
-    location: Geocell.create_point(40.7440290, -73.9873500)
+    location: Geomodel.create_point(40.7440290, -73.9873500)
   };
 var wolfgang = {
     id: 'Wolfgang Steakhouse', 
-    location: Geocell.create_point(40.7466230, -73.9820620)
+    location: Geomodel.create_point(40.7466230, -73.9820620)
   };
 var morgan =  {
     id: 'Morgan Library', 
-    location: Geocell.create_point(40.7493672, -73.9817685)
+    location: Geomodel.create_point(40.7493672, -73.9817685)
   };
 
 var objects = [flatiron, outback, museum_of_sex, wolfgang, morgan];
 objects.forEach(function(o) {
-  o.geocells = Geocell.generate_geo_cell(o.location);
+  o.geocells = Geomodel.generate_geo_cell(o.location);
   // logger.debug('Geocells for ' + o.id + ': ' + sys.inspect(o.geocells));
 });
 
 function test_proximity_fetch() {
   function execute_fetch(max_results, max_distance, event_listeners) {
-    Geocell.proximity_fetch(flatiron.location, 
+    Geomodel.proximity_fetch(flatiron.location, 
       function(geocells, event_listeners) {
         var obj_results = _.reject(objects, function(o) {
           return  (_.intersect(o.geocells, geocells).length < 0);
