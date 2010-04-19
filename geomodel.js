@@ -267,7 +267,7 @@ function create_geomodel(logger, inspect) {
      * @param point
      * @return Returns the list of geocells (all resolutions) that are containing the point
      */
-    generate_geo_cell: function(point) {
+    generate_geocells: function(point) {
       var geocells = [];
       var geocellMax = this.compute(point, MAX_GEOCELL_RESOLUTION);
       for(var i = 1; i < MAX_GEOCELL_RESOLUTION; i++) {

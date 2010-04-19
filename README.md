@@ -100,7 +100,7 @@ Generate geocells for your entities based on their location, and save them to
 your data source such that you can query for them by geocell later:
 
     my_obj.location = Geomodel.create_point(40.7407092, -73.9894039)
-    var geocells = Geomodel.generate_geo_cell(my_obj.location)
+    var geocells = Geomodel.generate_geocells(my_obj.location)
     // then do some stuff to save my_obj to your data source, indexed by 
     // the generated geocells somehow 
 

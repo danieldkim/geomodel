@@ -31,7 +31,7 @@ var morgan =  {
 
 var objects = [flatiron, outback, museum_of_sex, wolfgang, morgan];
 objects.forEach(function(o) {
-  o.geocells = Geomodel.generate_geo_cell(o.location);
+  o.geocells = Geomodel.generate_geocells(o.location);
   // logger.debug('Geocells for ' + o.id + ': ' + sys.inspect(o.geocells));
 });
 
