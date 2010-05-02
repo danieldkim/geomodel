@@ -837,7 +837,7 @@ function create_geomodel(logger, inspect) {
             } else if (x[0].get_id) {
               return (x[0].get_id() == y[0].get_id());               
             } else {
-              throw "Entities do not have an id property."
+              throw Error("Entities do not have an id property.");
             }
           })
       }
