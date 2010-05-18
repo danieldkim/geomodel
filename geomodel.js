@@ -982,7 +982,6 @@ function create_geomodel(logger, inspect) {
                             ' away, current farthest is ' + 
                             current_farthest_returnable_result_dist + ' dist')
             }
-            require('sys').puts('yo')
             done();
             return;
           }
