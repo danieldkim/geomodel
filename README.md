@@ -69,14 +69,14 @@ region for the geocell.
 
 ## Requirements
 
-The code relies heavily on 
+The code relies heavily on
 [Underscore.js](http://documentcloud.github.com/underscore/)
 
-While not absolutely dependent on this, it is helpful to have 
-[lo4js](http://log4js.berlios.de/).  If running on node.js, you can use 
+While not absolutely dependent on this, it is helpful to have
+[lo4js](http://log4js.berlios.de/). If running on node.js, you can use
 [log4js-node](http://github.com/csausdev/log4js-node).
 
-So far I've only tested this on [node.js](http://nodejs.org/).  Theoretically, 
+So far I've only tested this on [node.js](http://nodejs.org/). Theoretically,
 the code should work with any JS engine, including browsers.
 
 ## Usage
@@ -88,15 +88,16 @@ Create a Geomodel instance, passing in a <code>logger</code> object and an
     var logger = log4js.getLogger('foo');  
     var Geomodel = require('geomodel').create_geomodel(logger, require('sys').inspect);
 
-geomodel.js defaults the inspect parameter to '<code>require('sys').inspect</code>'
-so you don't technically need to pass this if you are running on node.js.
+geomodel.js defaults the inspect parameter to
+'<code>require('sys').inspect</code>' so you don't technically need to pass this
+if you are running on node.js.
 
-If you don't have log4js and don't really care about logging, just create a 
-Geomodel instance with no params: 
+If you don't have log4js and don't really care about logging, just create a
+Geomodel instance with no params:
 
     var Geomodel = require('geomodel').create_geomodel();
 
-Generate geocells for your entities based on their location, and save them to 
+Generate geocells for your entities based on their location, and save them to
 your data source such that you can query for them by geocell later:
 
     my_obj.location = Geomodel.create_point(40.7407092, -73.9894039)
@@ -104,12 +105,12 @@ your data source such that you can query for them by geocell later:
     // then do some stuff to save my_obj to your data source, indexed by 
     // the generated geocells somehow 
 
-All geocelled objects must have an 'id' and a 'location' property.  The location
-property must be an object with a 'lat' and 'lon' property (the 
-<code>create_point</code> function creates such an object).  These are used by
+All geocelled objects must have an 'id' and a 'location' property. The location
+property must be an object with a 'lat' and 'lon' property (the
+<code>create_point</code> function creates such an object). These are used by
 <code>proximity\_fetch</code>.
 
-Call <code>proximity\_fetch</code> to find entities near a point, passing in a 
+Call <code>proximity\_fetch</code> to find entities near a point, passing in a
 finder function and success and error handlers:
 
     var results = Geomodel.proximity_fetch(my_point,
@@ -131,14 +132,15 @@ finder function and success and error handlers:
                     },
                     max_results, max_distance);
 
-The results are returned as a list of "2-tuples" where the first element of the 
+The results are returned as a list of "2-tuples" where the first element of the
 tuple is the object and the second is the distance from the query point, sorted
 by distance:
 
     proximity_results.forEach(function(res) { puts(res[0].id + ' is ' + res[1] + ' meters away.') })
 
-For a full working example of these steps check out the code in tests/test-proximity-fetch.js.
-    
+For a full working example of these steps check out the code in
+tests/test-proximity-fetch.js.
+
 ## Author
 
 Daniel Kim  
