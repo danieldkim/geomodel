@@ -36,22 +36,14 @@ objects.forEach(function(o) {
 });
 
 function test_proximity_fetch() {
-  function execute_fetch(max_results, max_distance, event_listeners) {
-    Geomodel.proximity_fetch(flatiron.location, 
-      function(geocells, event_listeners) {
+  function execute_fetch(max_results, max_distance, callback) {
+    Geomodel.proximity_fetch(flatiron.location, max_results, max_distance, 
+      function(geocells, finder_callback) {
         var obj_results = _.reject(objects, function(o) {
           return  (_.intersect(o.geocells, geocells).length < 0);
         })
-        event_listeners.success(obj_results);
-      }, {
-        success: function(proximity_results) {
-          event_listeners.success(proximity_results);
-        },
-        error: function(mess) {
-          event_listeners.error(mess);         
-        }
-      },
-      max_results, max_distance);
+        finder_callback(null, obj_results);
+      }, callback);
   }
 
   function assert_proximity_results_contain(expected, actual) {
@@ -80,43 +72,37 @@ function test_proximity_fetch() {
   }
 
   // basic test
-  execute_fetch(5, 500, {
-    success: function(proximity_results) {
+  execute_fetch(5, 500, function(err, proximity_results) {
+    if (err) logger.info("Error executing basic test: " + mess);
+    else {
       assert.ok(proximity_results.length <= 5, "Too many results");
       assert_proximity_results_distances(proximity_results, 500);
       assert_proximity_results_contain([flatiron, outback, museum_of_sex], 
                                        proximity_results);      
      logger.info("basic test successful.");
-    },
-    error: function(mess) {
-      logger.info("Error executing basic test: " + mess);
     }
   });
   
   // test max results is respected
-  execute_fetch(2, 500, {
-    success: function(proximity_results) {
+  execute_fetch(2, 500, function(err, proximity_results) {
+    if (err) logger.info("Error executing test max results: " + mess);
+    else {
       assert.ok(proximity_results.length <= 2, "Too many results");
       assert_proximity_results_distances(proximity_results, 500);
       assert_proximity_results_contain([flatiron, outback], 
                                        proximity_results);
       logger.info("test max results successful.");
-     },
-    error: function(mess) {
-      logger.info("Error executing test max results: " + mess);
     }
    });
   
   // // increase the range
-  execute_fetch(5, 1000, {
-    success: function(proximity_results) {
+  execute_fetch(5, 1000, function(err, proximity_results) {
+    if (err) logger.info("Error executing test increasing the range: " + mess);
+    else {
       assert_proximity_results_distances(proximity_results, 1000);
       assert_proximity_results_contain([flatiron, outback, museum_of_sex, wolfgang], 
                                        proximity_results);
      logger.info("increasing the range result successful.");
-    },
-    error: function(mess) {
-      logger.info("Error executing test increasing the range: " + mess);
     }
   });
 
