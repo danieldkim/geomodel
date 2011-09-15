@@ -148,6 +148,10 @@ Daniel Kim
 danieldkimster@gmail.com  
 danieldkim on github
 
+## Contributors
+
+[Schwanksta](https://github.com/Schwanksta)
+
 ## License
 
 The Java and python versions of this library were distributed under the 
