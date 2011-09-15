@@ -132,6 +132,7 @@ function create_geomodel(logger, inspect) {
   var WEST = [-1,0];
 
   var RADIUS = 6378135;
+  var RADIUS_MI = 3963.2;
 
   // adding this which is used in the GeoCell.best_bbox_search_cells function
   String.prototype.startsWith = function(str) {return (this.match("^"+str)==str)}
@@ -156,6 +157,13 @@ function create_geomodel(logger, inspect) {
 
   // this is used by the distance function
   Math.toRadians = function(deg) { return deg * this.PI / 180; }
+  Math.toDegrees = function(rad) { return rad * 180 / this.PI; }
+
+  // this is used by bounding_box_from_distance
+  var MIN_LAT = Math.toRadians(-90);
+  var MAX_LAT = Math.toRadians(90);
+  var MIN_LON = Math.toRadians(-180);
+  var MAX_LON = Math.toRadians(180);
 
   // used to implement comparator functions for sorting
   function cmp(x, y)  { return x < y ? -1 : (x == y ? 0 : 1); }
@@ -306,30 +314,30 @@ function create_geomodel(logger, inspect) {
       // First find the common prefix, if there is one.. this will be the base
       // resolution.. i.e. we don't have to look at any higher resolution cells.
       var min_resolution = 0;
-      var max_resoltuion = Math.min(cell_ne.length, cell_sw.length);
-
-      while(min_resolution < max_resoltuion  && 
+      var max_resolution = Math.min(cell_ne.length, cell_sw.length);
+      while(min_resolution < max_resolution  && 
             cell_ne.substring(0, min_resolution+1).startsWith(cell_sw.substring(0, min_resolution+1))) {
         min_resolution++;
       }
 
       // Iteravely calculate all possible sets of cells that wholely contain
       // the requested bounding box.
+      var cur_ne, cur_sw, num_cells, cell_set, cost;
       for(var cur_resolution = min_resolution; 
           cur_resolution < MAX_GEOCELL_RESOLUTION + 1; 
           cur_resolution++) {
-        var cur_ne = cell_ne.substring(0, cur_resolution);
-        var cur_sw = cell_sw.substring(0, cur_resolution);
+        cur_ne = cell_ne.substring(0, cur_resolution);
+        cur_sw = cell_sw.substring(0, cur_resolution);
 
-        var num_cells = interpolation_count(cur_ne, cur_sw);
+        num_cells = this.interpolation_count(cur_ne, cur_sw);
         if(num_cells > MAX_FEASIBLE_BBOX_SEARCH_CELLS) {
           continue;
         }
 
-        var cell_set = interpolate(cur_ne, cur_sw);
+        cell_set = this.interpolate(cur_ne, cur_sw);
         cell_set.sort();
 
-        var cost = cost_function(cell_set.length, cur_resolution);
+        cost = cost_function(cell_set.length, cur_resolution);
 
         if(cost <= min_cost) {
           min_cost = cost;
@@ -372,10 +380,10 @@ function create_geomodel(logger, inspect) {
     collinear: function(cell1, cell2, column_test) {
 
       for(var i = 0; i < Math.min(cell1.length, cell2.length); i++) {
-        var l1 = _subdiv_xy(cell1.charAt(i));
+        var l1 = this._subdiv_xy(cell1.charAt(i));
         var x1 = l1[0];
         var y1 = l1[1];
-        var l2 = _subdiv_xy(cell2.charAt(i));
+        var l2 = this._subdiv_xy(cell2.charAt(i));
         var x2 = l2[0];
         var y2 = l2[1];
 
@@ -415,8 +423,8 @@ function create_geomodel(logger, inspect) {
 
       // First get adjacent geocells across until Southeast--collinearity with
       // Northeast in vertical direction (0) means we're at Southeast.
-      while(!collinear(arrayGetLast(cell_first), cell_ne, true)) {
-        var cell_tmp = adjacent(arrayGetLast(cell_first), EAST);
+      while(!this.collinear(arrayGetLast(cell_first), cell_ne, true)) {
+        var cell_tmp = this.adjacent(arrayGetLast(cell_first), EAST);
         if(cell_tmp == null) {
           break;
         }
@@ -429,7 +437,7 @@ function create_geomodel(logger, inspect) {
         var cell_tmp_row = [];
         var cell_set_last = arrayGetLast(cell_set);
         for(var i = 0; i < cell_set_last.length; i++) {
-          cell_tmp_row.add(adjacent(cell_set_last(i), NORTH));
+          cell_tmp_row.push(this.adjacent(cell_set_last[i], NORTH));
         }
         if( !arrayGetFirst(cell_tmp_row) ) {
           break;
@@ -462,11 +470,11 @@ function create_geomodel(logger, inspect) {
       var bbox_ne = this.compute_box(cell_ne);
       var bbox_sw = this.compute_box(cell_sw);
 
-      var cell_lat_span = bbox_sw.north() - bbox_sw.south();
-      var cell_lon_span = bbox_sw.east() - bbox_sw.west();
+      var cell_lat_span = bbox_sw.getNorth() - bbox_sw.getSouth();
+      var cell_lon_span = bbox_sw.getEast() - bbox_sw.getWest();
 
-      var num_cols = Math.floor((bbox_ne.east() - bbox_sw.west()) / cell_lon_span);
-      var num_rows = Math.floor((bbox_ne.north() - bbox_sw.south()) / cell_lat_span);
+      var num_cols = Math.floor((bbox_ne.getEast() - bbox_sw.getWest()) / cell_lon_span);
+      var num_rows = Math.floor((bbox_ne.getNorth() - bbox_sw.getSouth()) / cell_lat_span);
 
       return num_cols * num_rows;
     },
@@ -767,6 +775,105 @@ function create_geomodel(logger, inspect) {
           [[1,0],  that.distance(this.create_point(point.lat, max_box.getEast()), point)]
         ].sort(function(x, y) { return cmp(x[1], y[1]) }) )
     },
+
+    /** Given a point and a distance in miles, creates a bounding box that
+      * encompasses the desired area.
+      */ 
+    bounding_box_from_distance: function(pt, dist_mi) {
+        var radDist = dist_mi / RADIUS_MI;
+
+        var radLat = pt.lat;
+        var radLon = pt.lon;
+
+        radLat = Math.toRadians(radLat);
+        radLon = Math.toRadians(radLon);
+
+        var minLat = radLat - radDist;
+        var maxLat = radLat + radDist;
+
+        minLon = 0.0;
+        maxLon = 0.0;
+        if(minLat > MIN_LAT && maxLat < MAX_LAT) {
+            deltaLon = Math.asin(Math.sin(radDist) / Math.cos(radLat));
+            minLon = radLon - deltaLon;
+            if(minLon < MIN_LON)
+                minLon = minLon + (2 * Math.PI);
+            maxLon = radLon + deltaLon;
+            if(maxLon > MAX_LON)
+                maxLon = maxLon - (2 * Math.PI);
+        }
+        else {
+            //a pole is within the distance
+            minLat = Math.max(minLat, MIN_LAT);
+            maxLat = Math.min(maxLat, MAX_LAT);
+            minLon = MIN_LON;
+            maxLon = MAX_LON;
+        }
+        return this.create_bounding_box(Math.toDegrees(maxLat), Math.toDegrees(maxLon), 
+                        Math.toDegrees(minLat), Math.toDegrees(minLon));
+    },
+
+    /** Performs a bounding box fetch from a list of given entities. 
+     *
+     * Fetches at most <max_results> entities matching the given query, sorted by
+     * distance to a center point, if given.
+     *
+     * This method attempts to find an efficient set of geocells to search within
+     * to pair down the number of entities to check, then slims that list down to 
+     * only the entities within the given bounding box.
+     *
+     * Args:
+     *   entities: A list of entities to search within. These must be objects with
+     *       and 'id' property and a 'location' property that is a Geomodel point.
+     *   bbox: A bounding box returned from Geomodel.create_bounding_box.
+     *   center: The point object representing the center of the bounding box (or
+     *       just the point you wish to get the nearest entities to).
+     *   max_results: An int indicating the maximum number of desired results.
+     *       The default is 10.
+     *   cost_function: A function that accepts two arguments:
+     *          * num_cells: the number of cells to search
+     *          * resolution: the resolution of each cell to search
+     *       and returns the 'cost' of querying against this number of cells
+     *       at the given resolution.
+     *   event_listeners: A hash of functions to handle success and error 
+     *       results from this method.  The proximity results will be passed to
+     *       the success function.
+     * 
+     * On success, calls event_listeners.success.
+     * On error, calls event_listeners.error.
+     *
+     */
+    bounding_box_fetch: function(entities, bbox, center, max_results, cost_function, 
+                                    event_listeners) {
+        max_results = max_results || 10;
+        cost_function = cost_function || this.default_cost_function;
+        query_geocells = this.best_bbox_search_cells(bbox, cost_function);
+        var selected = _.select(entities, function(o){
+                return (_.intersection(o.geocells, query_geocells))
+            }
+        );
+        var results = [];
+        var myself = this;
+        if(selected) {
+            results = _.select(selected, function(o){
+                return o.location.lat >= bbox.getSouth() &&
+                o.location.lat <= bbox.getNorth() &&
+                o.location.lon >= bbox.getWest() &&
+                o.location.lon <= bbox.getEast()
+            });
+            if(center) {
+                _.map(results, function(o) {
+                    o.distance_from_center = myself.distance(center, o.location);
+                });
+                var sorted_results = _.sortBy(results, function(o) {
+                    return o.distance_from_center;
+                });
+                return event_listeners.success(sorted_results.slice(0, max_results));
+            }
+        }
+        event_listeners.success(results.slice(0, max_results));
+    },
+
 
     /** Performs a proximity/radius fetch using the given entity finder. 
      *
