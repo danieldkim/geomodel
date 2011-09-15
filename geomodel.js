@@ -783,28 +783,30 @@ function create_geomodel(logger, inspect) {
      *   center: A point indicating the center point around which to search for
      *       matching entities.  A point is just an object with a 'lat' and 'lon'
      *       property.
-     *   entity_finder: A function which takes a list of geocells as the first
-     *       parameter and finds all of the objects in those cells.  Objects
-     *       should have a 'id' and 'location' property.  The second parameter
-     *       passed to this function will be a hash containing a 'success' key
-     *       and an 'error' key, that map to functions to handle success and 
-     *       error conditions in the finder.  The result list of objects should
-     *       be passed to the success function when calling it.  
-     *   event_listeners: A hash of functions to handle success and error 
-     *       results from this method.  The proximity results will be passed to
-     *       the success function.
      *   max_results: An int indicating the maximum number of desired results.
      *       The default is 10, and the larger this number, the longer the fetch
      *       will take.
      *   max_distance: An optional number indicating the maximum distance to
      *       search, in meters.
+     *   entity_finder: A function which takes a list of geocells as the first
+     *       parameter and finds all of the objects in those cells.  Objects
+     *       should have a 'id' and 'location' property.  The second argument
+     *       passed to this function will a callback function to handle finder
+     *       results.  An error object should be passed as the first argument
+     *       to the callback, if one occurs, otherwise the first argument should
+     *       be null.  The finder results should be passed to the callback as
+     *       the second argument.  
+     *   callback: A functions to handle the results from this method.  An error
+     *       object will be passed as the first argument to this function, if one 
+     *       occurs, otherwise the first argument will be null.  The proximity 
+     *       results will be passed to this function as the second argument.
      * 
      * Returns:
      *   The fetched entities, sorted in ascending order by distance to the search
      *   center.
      * 
      */
-    proximity_fetch: function(center, entity_finder, event_listeners, max_results, max_distance) {
+    proximity_fetch: function(center, max_results, max_distance, entity_finder, callback) {
       max_results = max_results || 10
       max_distance = max_distance || 0
       var that = this
@@ -870,14 +872,13 @@ function create_geomodel(logger, inspect) {
         // Update results
         
         var new_results;
-        entity_finder(cur_geocells_unique, {
-          success: function(results) {
+        entity_finder(cur_geocells_unique, function(err, results) {
+          if (err) {
+            var error_mess = "Got error from entity finder: " + err;
+            callback(new Error(error_mess));
+          } else {
             new_results = results;
             process_new_results();
-          },
-          error: function(mess) {
-            var error_mess = "Got error from entity finder: " + mess;
-            event_listeners.error(error_mess);
           }
         });
 
@@ -998,12 +999,11 @@ function create_geomodel(logger, inspect) {
       }
 
       function done() {
-        require('sys').puts('yo')
         if (logger.isDebugEnabled()) logger.debug('proximity query looked in ' + searched_cells.length + ' geocells')
         var final_results = _.reject(results.slice(0, max_results), function(result) {
           return max_distance &&  result[1] >  max_distance
         })
-        event_listeners.success(final_results);
+        callback(null, final_results);
       }
     }
 

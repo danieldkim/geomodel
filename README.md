@@ -113,24 +113,25 @@ property must be an object with a 'lat' and 'lon' property (the
 Call <code>proximity\_fetch</code> to find entities near a point, passing in a
 finder function and success and error handlers:
 
-    var results = Geomodel.proximity_fetch(my_point,
-                    function(geocells, event_listeners) {
+    var results = Geomodel.proximity_fetch(my_point, max_results, max_distance,
+                    function(geocells, finder_callback) {
                       // this function should query your data source for all 
-                      // the entities in the specified geocells and then return 
-                      // them in an array like so:
-                      event_listeners.success(entity_results);
-                      // if any errors occur call the error function, passing
-                      // in an error message, like so:
-                      event_listeners.error(some_error_message)
-                    }, {
-                      success: function(proximity_results) {
-                        // do what you want to do with the results here
-                      },
-                      error: function(mess) {
+                      // the entities in the specified geocells 
+                      if (error) {
+                        // if any errors occur pass an error object to the 
+                        // callback like so:
+                        finder_callback(some_error_object);
+                      } else 
+                        // otherwise, return the results in an array like so:
+                        finder_callback(null, entity_results);
+                    }, 
+                    function(err, proximity_results) {
+                      if (err) {
                         // handle errors from proximity_fetch here
+                      } else {
+                        // do what you want to do with the results here                        
                       }
-                    },
-                    max_results, max_distance);
+                    });
 
 The results are returned as a list of "2-tuples" where the first element of the
 tuple is the object and the second is the distance from the query point, sorted
