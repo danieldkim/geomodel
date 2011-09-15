@@ -1,6 +1,6 @@
 var sys = require('sys');
 var assert = require('assert');
-var log4js = require('log4js-node');
+var log4js = require('log4js');
 log4js.addAppender(log4js.consoleAppender());
 log4js.addAppender(log4js.fileAppender('./test-proximity-fetch.log'), 'test-proximity-fetch');
 var logger = log4js.getLogger('test-proximity-fetch');
