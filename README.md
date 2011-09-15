@@ -73,8 +73,8 @@ The code relies heavily on
 [Underscore.js](http://documentcloud.github.com/underscore/)
 
 While not absolutely dependent on this, it is helpful to have
-[lo4js](http://log4js.berlios.de/). If running on node.js, you can use
-[log4js-node](http://github.com/csausdev/log4js-node).
+[lo4gjs](http://log4js.berlios.de/). If running on node.js, you should install
+it with npm.
 
 So far I've only tested this on [node.js](http://nodejs.org/). Theoretically,
 the code should work with any JS engine, including browsers.
