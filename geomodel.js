@@ -193,9 +193,9 @@ function create_geomodel(logger, inspect) {
     if (!lists) return [];
 
     var reverse_indices = _.map(lists, function(arr) { return arr.length })
-    var aggregate_reverse_index = _.reduce(reverse_indices, 0, function(sum, len) {
+    var aggregate_reverse_index = _.reduce(reverse_indices, function(sum, len) {
                                     return sum + len 
-                                  })
+                                  }, 0)
 
     while ( aggregate_reverse_index > 0 ) {
       var pull_arr_index = null, pull_val = null
