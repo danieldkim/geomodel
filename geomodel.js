@@ -301,7 +301,7 @@ function create_geomodel(logger, inspect) {
      */
     best_bbox_search_cells: function(bbox, cost_function) {
 
-      cost_function = cost_function || default_cost_function
+      cost_function = cost_function || this.default_cost_function
       var cell_ne = this.compute(bbox.northEast, MAX_GEOCELL_RESOLUTION);
       var cell_sw = this.compute(bbox.southWest, MAX_GEOCELL_RESOLUTION);
 
