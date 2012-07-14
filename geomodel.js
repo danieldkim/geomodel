@@ -106,7 +106,7 @@ function create_geomodel(logger, inspect) {
 
   if ( !inspect ) {
     try {
-      inspect = require('sys').inspect
+      inspect = require('util').inspect
     } catch (e) {}
   }
   inspect = inspect || no_op_fn

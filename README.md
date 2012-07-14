@@ -86,7 +86,7 @@ Create a Geomodel instance, passing in a <code>logger</code> object and an
 
     var log4js = require('log4js-node');
     var logger = log4js.getLogger('foo');  
-    var Geomodel = require('geomodel').create_geomodel(logger, require('sys').inspect);
+    var Geomodel = require('geomodel').create_geomodel(logger, require('util').inspect);
 
 geomodel.js defaults the inspect parameter to
 '<code>require('sys').inspect</code>' so you don't technically need to pass this

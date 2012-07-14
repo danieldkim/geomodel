@@ -1,4 +1,4 @@
-var sys = require('sys');
+var util = require('util');
 var assert = require('assert');
 var log4js = require('log4js');
 log4js.addAppender(log4js.consoleAppender());
@@ -32,7 +32,7 @@ var morgan =  {
 var objects = [flatiron, outback, museum_of_sex, wolfgang, morgan];
 objects.forEach(function(o) {
   o.geocells = Geomodel.generate_geocells(o.location);
-  // logger.debug('Geocells for ' + o.id + ': ' + sys.inspect(o.geocells));
+  // logger.debug('Geocells for ' + o.id + ': ' + util.inspect(o.geocells));
 });
 
 function test_proximity_fetch() {
