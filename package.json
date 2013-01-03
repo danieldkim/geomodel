@@ -1,14 +1,14 @@
 {
   "name"          : "geomodel",
   "description"   : "An implementation of the Geomodel/Geocell concept - http://code.google.com/apis/maps/articles/geospatial.html",
-  "homepage"      : "https://github.com/danieldkim/geomodel-js",
+  "homepage"      : "https://github.com/danieldkim/geomodel",
   "keywords"      : [ "geomodel", "geocell", "geolocation" ],
   "author"        : "Daniel Kim <danieldkimster@gmail.com>",
   "version"       : "0.1.0",
   "repository"    : { "type": "git", "url": "git://github.com/danieldkim/charlotte.git" },
-  "bugs"          : { "url" : "https://github.com/danieldkim/geomodel-js/issues" },
+  "bugs"          : { "url" : "https://github.com/danieldkim/geomodel/issues" },
   "licenses"      : [
-    { "type" : "Apache-2.0", "url" : "https://raw.github.com/danieldkim/geomodel-js/master/README.md" }
+    { "type" : "Apache-2.0", "url" : "https://raw.github.com/danieldkim/geomodel/master/README.md" }
   ],
   "dependencies"  : {
     "underscore"    : "~1.4.3"
