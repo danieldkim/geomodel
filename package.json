@@ -4,7 +4,7 @@
   "homepage"      : "https://github.com/danieldkim/geomodel-js",
   "keywords"      : [ "geomodel", "geocell", "geolocation" ],
   "author"        : "Daniel Kim <danieldkimster@gmail.com>",
-  "version"       : "0.1.8",
+  "version"       : "0.1.0",
   "repository"    : { "type": "git", "url": "git://github.com/danieldkim/charlotte.git" },
   "bugs"          : { "url" : "https://github.com/danieldkim/geomodel-js/issues" },
   "licenses"      : [
