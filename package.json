@@ -1,0 +1,22 @@
+{
+  "name"          : "geomodel-js",
+  "description"   : "An implementation of the Geomodel/Geocell concept - http://code.google.com/apis/maps/articles/geospatial.html",
+  "homepage"      : "https://github.com/danieldkim/geomodel-js",
+  "keywords"      : [ "geomodel", "geocell", "geolocation" ],
+  "author"        : "Daniel Kim <danieldkimster@gmail.com>",
+  "version"       : "0.1.8",
+  "repository"    : { "type": "git", "url": "git://github.com/danieldkim/charlotte.git" },
+  "bugs"          : { "url" : "https://github.com/danieldkim/geomodel-js/issues" },
+  "licenses"      : [
+    { "type" : "Apache-2.0", "url" : "https://raw.github.com/danieldkim/geomodel-js/master/README.md" }
+  ],
+  "dependencies"  : {
+    "underscore"    : "~1.4.3"
+  },
+  "devDependencies": {
+    "log4js" : "~0.5.6"
+  },
+  "scripts": {
+    "test": "node test/test-proximity-fetch.js"
+  }
+}
