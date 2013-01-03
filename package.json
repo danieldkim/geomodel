@@ -1,5 +1,5 @@
 {
-  "name"          : "geomodel-js",
+  "name"          : "geomodel",
   "description"   : "An implementation of the Geomodel/Geocell concept - http://code.google.com/apis/maps/articles/geospatial.html",
   "homepage"      : "https://github.com/danieldkim/geomodel-js",
   "keywords"      : [ "geomodel", "geocell", "geolocation" ],

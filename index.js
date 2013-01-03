@@ -1,1 +1,1 @@
-require('./geomodel')
+module.exports = require('./geomodel')
