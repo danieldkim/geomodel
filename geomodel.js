@@ -313,10 +313,10 @@ function create_geomodel(logger, inspect) {
 
       // First find the common prefix, if there is one.. this will be the base
       // resolution.. i.e. we don't have to look at any higher resolution cells.
-      var min_resolution = 0;
+      var min_resolution = 1;
       var max_resolution = Math.min(cell_ne.length, cell_sw.length);
       while(min_resolution < max_resolution  && 
-            cell_ne.substring(0, min_resolution+1).startsWith(cell_sw.substring(0, min_resolution+1))) {
+            cell_ne.substring(0, min_resolution).startsWith(cell_sw.substring(0, min_resolution))) {
         min_resolution++;
       }
 
