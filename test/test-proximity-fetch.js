@@ -8,8 +8,11 @@ log4js.configure({
   ]});
 var logger = log4js.getLogger('test-proximity-fetch');
 logger.setLevel('INFO');
-var Geomodel = require('geomodel').create_geomodel(logger);
+var Geomodel = require('../geomodel').create_geomodel(logger);
 var _ = require('underscore')._;
+
+//TODO: perhaps Geomodel should expose this?
+var MAX_GEOCELL_RESOLUTION = 13
 
 var flatiron = {
     id: 'Flatiron',
@@ -112,3 +115,25 @@ function test_proximity_fetch() {
 }
 
 setTimeout(test_proximity_fetch, 0);
+
+function test_best_bbox_search_cells_across_major_cell_boundary() {
+  var result, bbox = Geomodel.create_bounding_box(43.195111, -89.998193, 43.19302, -90.002356);
+  assert.doesNotThrow(function() {
+    result = Geomodel.best_bbox_search_cells(bbox);
+    logger.info("best bounding box across fault lines successful");
+  });
+}
+
+function test_best_bbox_search_cells_max_resolution() {
+  var result, bbox = Geomodel.create_bounding_box(43.195110, -89.998193, 43.195110, -89.998193);
+  result = Geomodel.best_bbox_search_cells(bbox, function(num_cells, resolution) {
+    return resolution <= MAX_GEOCELL_RESOLUTION ? 0 : Math.exp(10000);
+  });
+  assert.equal(result.length, 1);
+  assert.equal(result[0], '9aa228a8b3b00');
+  logger.info("best bounding box at max resolution successful");
+}
+test_best_bbox_search_cells_across_major_cell_boundary();
+test_best_bbox_search_cells_max_resolution();
+
+
