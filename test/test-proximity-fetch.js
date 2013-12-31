@@ -35,15 +35,6 @@ var morgan =  {
     location: Geomodel.create_point(40.7493672, -73.9817685)
   };
 
-var cell8 = {
-    id: 'On cell 8 side',
-    location: Geomodel.create_point(43.194093, -90.000370)
-  };
-var cell9 = {
-    id: 'On cell 9 side',
-    location: Geomodel.create_point(43.194118, -89.999820)
-  };
-
 var objects = [flatiron, outback, museum_of_sex, wolfgang, morgan];
 objects.forEach(function(o) {
   o.geocells = Geomodel.generate_geocells(o.location);
@@ -127,8 +118,10 @@ setTimeout(test_proximity_fetch, 0);
 
 function test_best_bbox_search_cells_across_major_cell_boundary() {
   var result, bbox = Geomodel.create_bounding_box(43.195111, -89.998193, 43.19302, -90.002356);
-  result = Geomodel.best_bbox_search_cells(bbox);
-  logger.info("best bounding box across fault lines successful");
+  assert.doesNotThrow(function() {
+    result = Geomodel.best_bbox_search_cells(bbox);
+    logger.info("best bounding box across fault lines successful");
+  });
 }
 
 function test_best_bbox_search_cells_max_resolution() {
@@ -137,7 +130,7 @@ function test_best_bbox_search_cells_max_resolution() {
     return resolution <= MAX_GEOCELL_RESOLUTION ? 0 : Math.exp(10000);
   });
   assert.equal(result.length, 1);
-  assert.equal(result[0].length, 13);
+  assert.equal(result[0], '9aa228a8b3b00');
   logger.info("best bounding box at max resolution successful");
 }
 test_best_bbox_search_cells_across_major_cell_boundary();
