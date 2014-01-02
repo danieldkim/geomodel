@@ -151,6 +151,7 @@ danieldkim on github
 ## Contributors
 
 [Schwanksta](https://github.com/Schwanksta)
+[Brian Chapman](https://github.com/BrianChapman)
 
 ## License
 
