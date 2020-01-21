@@ -98,7 +98,14 @@ var no_op_logger  = { isDebugEnabled: function() {return false} };
 
 if (typeof exports !== 'undefined') exports.create_geomodel = create_geomodel;
 
-function create_geomodel(logger, inspect) {
+function create_geomodel(options) {
+  let logger = options && options.logger;
+  let inspect = options && options.inspect;
+  let aliases = Object.assign({
+    location: 'location',
+    lat: 'lat',
+    lon: 'lon',
+  }, options && options.aliases);
 
   if ( ! logger ) {
     logger = no_op_logger
@@ -235,7 +242,7 @@ function create_geomodel(logger, inspect) {
       if(lon > 180.0 || lon < -180.0) {
         throw new Error("Longitude must be in [-180, 180] but was " + lon);
       }
-      return { lat: lat, lon:lon }
+      return { [aliases.lat]: lat, [aliases.lon]:lon }
     }, 
   
     create_bounding_box: function(north, east, south, west) { 
@@ -255,16 +262,16 @@ function create_geomodel(logger, inspect) {
         northEast: this.create_point(north_, east),
         southWest: this.create_point(south_, west),
         getNorth: function() {
-          return this.northEast.lat;
+          return this.northEast[aliases.lat];
         },
         getSouth: function() {
-          return this.southWest.lat;
+          return this.southWest[aliases.lat];
         },
         getWest: function() {
-          return this.southWest.lon;
+          return this.southWest[aliases.lon];
         },
         getEast: function() {
-          return this.northEast.lon;
+          return this.northEast[aliases.lon];
         }
       }
     },
@@ -597,21 +604,21 @@ function create_geomodel(logger, inspect) {
     point_distance: function(cell, point) {
       var bbox = this.compute_box(cell);
 
-      var between_w_e = bbox.getWest() <= point.lon && point.lon <= bbox.getEast();
-      var between_n_s = bbox.getSouth() <= point.lat && point.lat <= bbox.getNorth();
+      var between_w_e = bbox.getWest() <= point[aliases.lon] && point[aliases.lon] <= bbox.getEast();
+      var between_n_s = bbox.getSouth() <= point[aliases.lat] && point[aliases.lat] <= bbox.getNorth();
 
       if(between_w_e) {
         if(between_n_s) {
           // Inside the geocell.
           return Math.min(
-              Math.min(distance(point, this.create_point(bbox.getSouth(), point.lon)),distance(point, this.create_point(bbox.getNorth(), point.lon))),
-              Math.min(distance(point, this.create_point(point.lat, bbox.getEast())),distance(point, this.create_point(point.lat, bbox.getWest()))));
+              Math.min(distance(point, this.create_point(bbox.getSouth(), point[aliases.lon])),distance(point, this.create_point(bbox.getNorth(), point[aliases.lon]))),
+              Math.min(distance(point, this.create_point(point[aliases.lat], bbox.getEast())),distance(point, this.create_point(point[aliases.lat], bbox.getWest()))));
         } else {
-          return Math.min(distance(point, this.create_point(bbox.getSouth(), point.lon)),distance(point, this.create_point(bbox.getNorth(), point.lon))); 
+          return Math.min(distance(point, this.create_point(bbox.getSouth(), point[aliases.lon])),distance(point, this.create_point(bbox.getNorth(), point[aliases.lon]))); 
         } 
       } else {
         if(between_n_s) {
-          return Math.min(distance(point, this.create_point(point.lat, bbox.getEast())),distance(point, this.create_point(point.lat, bbox.getWest())));
+          return Math.min(distance(point, this.create_point(point[aliases.lat], bbox.getEast())),distance(point, this.create_point(point[aliases.lat], bbox.getWest())));
         } else {
           // TODO(romannurik): optimize
           return Math.min(Math.min(distance(point, this.create_point(bbox.getSouth(), bbox.getEast())),distance(point, this.create_point(bbox.getNorth(), bbox.getEast()))),
@@ -643,9 +650,9 @@ function create_geomodel(logger, inspect) {
         var subcell_lon_span = (east - west) / GEOCELL_GRID_SIZE;
         var subcell_lat_span = (north - south) / GEOCELL_GRID_SIZE;
 
-        var x = Math.min(Math.floor(GEOCELL_GRID_SIZE * (point.lon - west) / (east - west)),
+        var x = Math.min(Math.floor(GEOCELL_GRID_SIZE * (point[aliases.lon] - west) / (east - west)),
                          GEOCELL_GRID_SIZE - 1);
-        var y = Math.min(Math.floor(GEOCELL_GRID_SIZE * (point.lat - south) / (north - south)),
+        var y = Math.min(Math.floor(GEOCELL_GRID_SIZE * (point[aliases.lat] - south) / (north - south)),
                          GEOCELL_GRID_SIZE - 1);
 
         var l = [x,y];
@@ -743,10 +750,10 @@ function create_geomodel(logger, inspect) {
      * @return The 2D great-circle distance between the two given points, in meters.
      */
     distance: function(p1, p2) {
-        var p1lat = Math.toRadians(p1.lat);
-        var p1lon = Math.toRadians(p1.lon);
-        var p2lat = Math.toRadians(p2.lat);
-        var p2lon = Math.toRadians(p2.lon);
+        var p1lat = Math.toRadians(p1[aliases.lat]);
+        var p1lon = Math.toRadians(p1[aliases.lon]);
+        var p2lat = Math.toRadians(p2[aliases.lat]);
+        var p2lon = Math.toRadians(p2[aliases.lon]);
         return RADIUS * Math.acos(Math.sin(p1lat) * Math.sin(p2lat) +
                Math.cos(p1lat) * Math.cos(p2lat) * Math.cos(p2lon - p1lon));
     },
@@ -769,10 +776,10 @@ function create_geomodel(logger, inspect) {
                       Math.max.apply(null, _.map(boxes, function(box) { return box.getWest() })))
       return _.zip.apply(_, 
         [
-          [[0,-1], that.distance(this.create_point(max_box.getSouth(), point.lon), point)],
-          [[0,1],  that.distance(this.create_point(max_box.getNorth(), point.lon), point)],
-          [[-1,0], that.distance(this.create_point(point.lat, max_box.getWest()), point)],
-          [[1,0],  that.distance(this.create_point(point.lat, max_box.getEast()), point)]
+          [[0,-1], that.distance(this.create_point(max_box.getSouth(), point[aliases.lon]), point)],
+          [[0,1],  that.distance(this.create_point(max_box.getNorth(), point[aliases.lon]), point)],
+          [[-1,0], that.distance(this.create_point(point[aliases.lat], max_box.getWest()), point)],
+          [[1,0],  that.distance(this.create_point(point[aliases.lat], max_box.getEast()), point)]
         ].sort(function(x, y) { return cmp(x[1], y[1]) }) )
     },
 
@@ -782,8 +789,8 @@ function create_geomodel(logger, inspect) {
     bounding_box_from_distance: function(pt, dist_mi) {
         var radDist = dist_mi / RADIUS_MI;
 
-        var radLat = pt.lat;
-        var radLon = pt.lon;
+        var radLat = pt[aliases.lat];
+        var radLon = pt[aliases.lon];
 
         radLat = Math.toRadians(radLat);
         radLon = Math.toRadians(radLon);
@@ -856,14 +863,14 @@ function create_geomodel(logger, inspect) {
         var myself = this;
         if(selected) {
             results = _.select(selected, function(o){
-                return o.location.lat >= bbox.getSouth() &&
-                o.location.lat <= bbox.getNorth() &&
-                o.location.lon >= bbox.getWest() &&
-                o.location.lon <= bbox.getEast()
+                return o[aliases.location][aliases.lat] >= bbox.getSouth() &&
+                o[aliases.location][aliases.lat] <= bbox.getNorth() &&
+                o[aliases.location][aliases.lon] >= bbox.getWest() &&
+                o[aliases.location][aliases.lon] <= bbox.getEast()
             });
             if(center) {
                 _.map(results, function(o) {
-                    o.distance_from_center = myself.distance(center, o.location);
+                    o.distance_from_center = myself.distance(center, o[aliases.location]);
                 });
                 var sorted_results = _.sortBy(results, function(o) {
                     return o.distance_from_center;
@@ -997,7 +1004,7 @@ function create_geomodel(logger, inspect) {
           // Begin Storing distance from the search result entity to the
           // search center along with the search result itself, in a tuple.
           new_results = _.map(new_results, function(entity) { 
-                              return [entity, that.distance(center, entity.location)]
+                              return [entity, that.distance(center, entity[aliases.location])]
                         })
           new_results.sort(function(dr1, dr2) { return cmp(dr1[1], dr2[1]) })
           new_results = _.first(new_results, max_results)
@@ -1081,7 +1088,7 @@ function create_geomodel(logger, inspect) {
           // If the currently max_results'th closest item is closer than any
           // of the next test geocells, we're done searching.
           current_farthest_returnable_result_dist = that.distance(center, 
-                                                      results[max_results - 1][0].location)
+                                                      results[max_results - 1][0][aliases.location])
           if (closest_possible_next_result_dist >=
               current_farthest_returnable_result_dist) {
             if (logger.isDebugEnabled()) {

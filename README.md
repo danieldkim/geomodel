@@ -82,14 +82,14 @@ the code should work with any JS engine, including browsers.
 ## Usage
 
 Create a Geomodel instance, passing in a <code>logger</code> object and an
-<code>inspect</code> function:
+options object:
 
     var log4js = require('log4js-node');
     var logger = log4js.getLogger('foo');  
-    var Geomodel = require('geomodel').create_geomodel(logger, require('util').inspect);
+    var Geomodel = require('geomodel').create_geomodel({ logger, inspect: require('util').inspect });
 
-geomodel.js defaults the inspect parameter to
-'<code>require('sys').inspect</code>' so you don't technically need to pass this
+geomodel.js defaults the inspect option to
+'<code>require('util').inspect</code>' so you don't technically need to pass this
 if you are running on node.js.
 
 If you don't have log4js and don't really care about logging, just create a
@@ -141,6 +141,20 @@ by distance:
 
 For a full working example of these steps check out the code in
 tests/test-proximity-fetch.js.
+
+## Aliases
+
+To integrate more easily with your own data model, You can specify aliases for the
+`location`, `lat` and `lon` properties with the `aliases` option:
+
+    var Geomodel = require('geomodel').create_geomodel({
+      aliases: {
+        location: 'coordinates',
+        lat: 'latitude',
+        lon: 'longitude',
+      }
+    });
+
 
 ## Author
 

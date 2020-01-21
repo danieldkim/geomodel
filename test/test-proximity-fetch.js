@@ -8,7 +8,12 @@ log4js.configure({
   ]});
 var logger = log4js.getLogger('test-proximity-fetch');
 logger.setLevel('INFO');
-var Geomodel = require('../geomodel').create_geomodel(logger);
+var Geomodel = require('../geomodel').create_geomodel({
+  logger,
+  aliases: {
+    location: 'coordinates', lon: 'lng'
+  }
+});
 var _ = require('underscore')._;
 
 //TODO: perhaps Geomodel should expose this?
@@ -16,34 +21,34 @@ var MAX_GEOCELL_RESOLUTION = 13
 
 var flatiron = {
     id: 'Flatiron',
-    location: Geomodel.create_point(40.7407092, -73.9894039)
+    coordinates: Geomodel.create_point(40.7407092, -73.9894039)
   };
 var outback = {
     id: 'Outback Steakhouse',
-    location: Geomodel.create_point(40.7425610, -73.9922670)
+    coordinates: Geomodel.create_point(40.7425610, -73.9922670)
   };
 var museum_of_sex = {
     id: 'Museum of Sex',
-    location: Geomodel.create_point(40.7440290, -73.9873500)
+    coordinates: Geomodel.create_point(40.7440290, -73.9873500)
   };
 var wolfgang = {
     id: 'Wolfgang Steakhouse',
-    location: Geomodel.create_point(40.7466230, -73.9820620)
+    coordinates: Geomodel.create_point(40.7466230, -73.9820620)
   };
 var morgan =  {
     id: 'Morgan Library',
-    location: Geomodel.create_point(40.7493672, -73.9817685)
+    coordinates: Geomodel.create_point(40.7493672, -73.9817685)
   };
 
 var objects = [flatiron, outback, museum_of_sex, wolfgang, morgan];
 objects.forEach(function(o) {
-  o.geocells = Geomodel.generate_geocells(o.location);
+  o.geocells = Geomodel.generate_geocells(o.coordinates);
   // logger.debug('Geocells for ' + o.id + ': ' + util.inspect(o.geocells));
 });
 
 function test_proximity_fetch() {
   function execute_fetch(max_results, max_distance, callback) {
-    Geomodel.proximity_fetch(flatiron.location, max_results, max_distance,
+    Geomodel.proximity_fetch(flatiron.coordinates, max_results, max_distance,
       function(geocells, finder_callback) {
         var obj_results = _.reject(objects, function(o) {
           return  (_.intersection(o.geocells, geocells).length < 0);

@@ -1,20 +1,32 @@
 {
-  "name"          : "geomodel",
-  "description"   : "An implementation of the Geomodel/Geocell concept - http://code.google.com/apis/maps/articles/geospatial.html",
-  "homepage"      : "https://github.com/danieldkim/geomodel",
-  "keywords"      : [ "geomodel", "geocell", "geolocation" ],
-  "author"        : "Daniel Kim <danieldkimster@gmail.com>",
-  "version"       : "0.1.2",
-  "repository"    : { "type": "git", "url": "https://github.com/danieldkim/geomodel.git" },
-  "bugs"          : { "url" : "https://github.com/danieldkim/geomodel/issues" },
-  "licenses"      : [
-    { "type" : "Apache-2.0", "url" : "https://raw.github.com/danieldkim/geomodel/master/README.md" }
+  "name": "geomodel",
+  "description": "An implementation of the Geomodel/Geocell concept - http://code.google.com/apis/maps/articles/geospatial.html",
+  "homepage": "https://github.com/danieldkim/geomodel",
+  "keywords": [
+    "geomodel",
+    "geocell",
+    "geolocation"
   ],
-  "dependencies"  : {
-    "underscore"    : "~1.4.3"
+  "author": "Daniel Kim <danieldkimster@gmail.com>",
+  "version": "0.1.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danieldkim/geomodel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/danieldkim/geomodel/issues"
+  },
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "https://raw.github.com/danieldkim/geomodel/master/README.md"
+    }
+  ],
+  "dependencies": {
+    "underscore": "~1.4.3"
   },
   "devDependencies": {
-    "log4js" : "~0.5.6"
+    "log4js": "~0.5.6"
   },
   "scripts": {
     "test": "node test/test-proximity-fetch.js"
