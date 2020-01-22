@@ -141,8 +141,10 @@ function create_geomodel(options) {
   var RADIUS = 6378135;
   var RADIUS_MI = 3963.2;
 
-  // adding this which is used in the GeoCell.best_bbox_search_cells function
-  String.prototype.startsWith = function(str) {return (this.match("^"+str)==str)}
+  if (!String.prototype.startsWith) {
+    // adding this which is used in the GeoCell.best_bbox_search_cells function
+    String.prototype.startsWith = function(str) {return (this.match("^"+str)==str)}
+  }
 
   // adding the Array and String functions below, which are used by the 
   // interpolate function and others
