@@ -70,7 +70,7 @@ region for the geocell.
 ## Requirements
 
 The code relies heavily on
-[Underscore.js](http://documentcloud.github.com/underscore/)
+[lodash](https://lodash.com/)
 
 While not absolutely dependent on this, it is helpful to have
 [lo4gjs](http://log4js.berlios.de/). If running on node.js, you should install
@@ -154,6 +154,16 @@ To integrate more easily with your own data model, You can specify aliases for t
         lon: 'longitude',
       }
     });
+
+`location` can be a path to a nested sub-object on your entities:
+
+    var Geomodel = require('geomodel').create_geomodel({
+      aliases: {
+        location: 'foo.bar.coordinates',
+      }
+    });
+
+
 
 
 ## Author

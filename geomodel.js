@@ -85,11 +85,11 @@
  */
 
 try {
-  var underscore = require('underscore')
+  var lodash = require('lodash')
 } catch (e) {}
 
-if (underscore) {
-  var _ = underscore._
+if (lodash) {
+  var _ = lodash;
 }
 
 var no_op_fn = function() {}
@@ -865,14 +865,15 @@ function create_geomodel(options) {
         var myself = this;
         if(selected) {
             results = _.select(selected, function(o){
-                return o[aliases.location][aliases.lat] >= bbox.getSouth() &&
-                o[aliases.location][aliases.lat] <= bbox.getNorth() &&
-                o[aliases.location][aliases.lon] >= bbox.getWest() &&
-                o[aliases.location][aliases.lon] <= bbox.getEast()
+                const location = lodash.get(o, aliases.location);
+                return location[aliases.lat] >= bbox.getSouth() &&
+                location[aliases.lat] <= bbox.getNorth() &&
+                location[aliases.lon] >= bbox.getWest() &&
+                location[aliases.lon] <= bbox.getEast()
             });
             if(center) {
                 _.map(results, function(o) {
-                    o.distance_from_center = myself.distance(center, o[aliases.location]);
+                    o.distance_from_center = myself.distance(center, lodash.get(o, aliases.location));
                 });
                 var sorted_results = _.sortBy(results, function(o) {
                     return o.distance_from_center;
@@ -979,7 +980,7 @@ function create_geomodel(options) {
         }
 
         var cur_geocells_unique = _.reject(_.uniq(cur_geocells), function(cell) { 
-                                    return _.include(searched_cells, cell) 
+                                    return _.includes(searched_cells, cell) 
                                   })
         if (logger.isDebugEnabled()) logger.debug('cur_geocells: ' + inspect(cur_geocells))
         if (logger.isDebugEnabled()) logger.debug('cur_geocells_unique: ' + inspect(cur_geocells_unique))
@@ -1006,10 +1007,10 @@ function create_geomodel(options) {
           // Begin Storing distance from the search result entity to the
           // search center along with the search result itself, in a tuple.
           new_results = _.map(new_results, function(entity) { 
-                              return [entity, that.distance(center, entity[aliases.location])]
+                              return [entity, that.distance(center, lodash.get(entity, aliases.location))]
                         })
           new_results.sort(function(dr1, dr2) { return cmp(dr1[1], dr2[1]) })
-          new_results = _.first(new_results, max_results)
+          new_results = _.take(new_results, max_results)
           if (logger.isDebugEnabled()) logger.debug('new results:' + inspect(new_results))
           // Merge new_results into results or the other way around, depending on
           // which is larger.
@@ -1020,7 +1021,7 @@ function create_geomodel(options) {
             results = new_results
           }
           if (logger.isDebugEnabled()) logger.debug('results(after merge):' + inspect(results))
-          results = _.first(results, max_results)
+          results = _.take(results, max_results)
 
           var sorted = that.distance_sorted_edges(cur_geocells, center)
           if (logger.isDebugEnabled()) logger.debug('sorted: ' + inspect(sorted))
@@ -1090,7 +1091,7 @@ function create_geomodel(options) {
           // If the currently max_results'th closest item is closer than any
           // of the next test geocells, we're done searching.
           current_farthest_returnable_result_dist = that.distance(center, 
-                                                      results[max_results - 1][0][aliases.location])
+                                                      lodash.get(results[max_results - 1][0], aliases.location))
           if (closest_possible_next_result_dist >=
               current_farthest_returnable_result_dist) {
             if (logger.isDebugEnabled()) {

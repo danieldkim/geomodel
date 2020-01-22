@@ -11,44 +11,54 @@ logger.setLevel('INFO');
 var Geomodel = require('../geomodel').create_geomodel({
   logger,
   aliases: {
-    location: 'coordinates', lon: 'lng'
+    location: 'child.coordinates', lon: 'lng'
   }
 });
-var _ = require('underscore')._;
+var _ = require('lodash');
 
 //TODO: perhaps Geomodel should expose this?
 var MAX_GEOCELL_RESOLUTION = 13
 
 var flatiron = {
     id: 'Flatiron',
-    coordinates: Geomodel.create_point(40.7407092, -73.9894039)
+    child: {
+      coordinates: Geomodel.create_point(40.7407092, -73.9894039)
+    }
   };
 var outback = {
     id: 'Outback Steakhouse',
-    coordinates: Geomodel.create_point(40.7425610, -73.9922670)
+    child: {
+      coordinates: Geomodel.create_point(40.7425610, -73.9922670)
+    }
   };
 var museum_of_sex = {
     id: 'Museum of Sex',
-    coordinates: Geomodel.create_point(40.7440290, -73.9873500)
+    child: {
+      coordinates: Geomodel.create_point(40.7440290, -73.9873500)
+    }
   };
 var wolfgang = {
     id: 'Wolfgang Steakhouse',
-    coordinates: Geomodel.create_point(40.7466230, -73.9820620)
+    child: {
+      coordinates: Geomodel.create_point(40.7466230, -73.9820620)
+    }
   };
 var morgan =  {
     id: 'Morgan Library',
-    coordinates: Geomodel.create_point(40.7493672, -73.9817685)
+    child: {
+      coordinates: Geomodel.create_point(40.7493672, -73.9817685)
+    }
   };
 
 var objects = [flatiron, outback, museum_of_sex, wolfgang, morgan];
 objects.forEach(function(o) {
-  o.geocells = Geomodel.generate_geocells(o.coordinates);
+  o.geocells = Geomodel.generate_geocells(o.child.coordinates);
   // logger.debug('Geocells for ' + o.id + ': ' + util.inspect(o.geocells));
 });
 
 function test_proximity_fetch() {
   function execute_fetch(max_results, max_distance, callback) {
-    Geomodel.proximity_fetch(flatiron.coordinates, max_results, max_distance,
+    Geomodel.proximity_fetch(flatiron.child.coordinates, max_results, max_distance,
       function(geocells, finder_callback) {
         var obj_results = _.reject(objects, function(o) {
           return  (_.intersection(o.geocells, geocells).length < 0);
@@ -61,9 +71,9 @@ function test_proximity_fetch() {
     assert.equal(expected.length, actual.length,
                  "Expected proximity result size of " + expected.length +
                    ", not " + actual.length);
-    assert.ok(_.all(expected, function(o) {
+    assert.ok(_.every(expected, function(o) {
                 var objects = _.map(actual, function(res) {return res[0]})
-                return _.include(objects, o);
+                return _.includes(objects, o);
               }),
               "Proximity results does not include all expected objects: " +
     _.map(expected, function(o) { return o.id }));
@@ -71,7 +81,7 @@ function test_proximity_fetch() {
 
   function assert_proximity_results_distances(proximity_results, max) {
     // test that all distances are less than or equal to max
-    assert.ok(_.all(proximity_results, function(res) { return res[1] <= max }),
+    assert.ok(_.every(proximity_results, function(res) { return res[1] <= max }),
              "Proximity results contain distance greater than " +max);
      var last;
      proximity_results.forEach(function(res) {
